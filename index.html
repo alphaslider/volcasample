@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VOLCA_SAMPLE_PRO_MINIMAL_EDITION_V3</title>
+<style>
+  /* Industrial / Hardware Global Styling */
+  body { 
+    background: #111; 
+    /* Carbon Fiber Hexagonal Texture */
+    background-image: 
+      linear-gradient(45deg, #151515 25%, transparent 25%), 
+      linear-gradient(-45deg, #151515 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #151515 75%), 
+      linear-gradient(-45deg, transparent 75%, #151515 75%);
+    background-size: 10px 10px;
+    background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+    color: #ccc; 
+    font-family: monospace; 
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; 
+    min-height: 100vh; 
+    margin: 0; 
+    padding: 20px; 
+    text-transform: uppercase; 
+    overflow-x: hidden;
+  }
+  
+  #chassis { 
+    background: linear-gradient(135deg, #333, #1e1e1e);
+    border: 3px solid #0a0a0a; 
+    padding: 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 2px 3px rgba(255,255,255,0.15); 
+    width: 880px; 
+    color: #eee; 
+    position: relative;
+  }
+
+  /* Top Branding */
+  .brand-header { 
+    display: flex; justify-content: space-between; align-items: flex-end; 
+    border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; 
+    box-shadow: 0 2px 0 rgba(255,255,255,0.03);
+  }
+  .brand-title { font-weight: bold; font-size: 18px; color: #ffb700; letter-spacing: 2px; text-shadow: 0 0 6px rgba(255,183,0,0.3); }
+  .brand-subtitle { font-size: 10px; color: #888; }
+
+  /* Track / Page Selector Tabs & Mute Row */
+  .track-tabs-container { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .track-tabs, .mute-row { display: flex; gap: 6px; }
+  .track-tab, .mute-btn { 
+    flex: 1; text-align: center; background: #2a2a2a; border: 2px solid #111; 
+    padding: 6px 2px; font-family: monospace; font-size: 9px; cursor: pointer; 
+    border-radius: 3px; font-weight: bold; color: #999; 
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .track-tab.active { background: #ffb700; color: #000; border-color: #aa7700; text-shadow: 0 1px 0 rgba(255,255,255,0.5); box-shadow: inset 0 0 10px rgba(255,255,255,0.3); }
+  .mute-btn.muted { background: #1a1a1a; color: #00e5ff; border-color: #000; box-shadow: inset 0 4px 8px rgba(0,0,0,0.8); }
+
+  /* Main Control Surface Grid */
+  .control-surface { 
+    display: grid; grid-template-columns: 140px 1fr 180px; gap: 12px; 
+    background: #181818; padding: 12px; border: 2px solid #0a0a0a; 
+    border-radius: 6px; margin-bottom: 16px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.6);
+  }
+  .section-box { 
+    border: 1px solid #2a2a2a; padding: 8px; border-radius: 4px; display: flex; 
+    flex-direction: column; gap: 8px; background: #222; box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+  }
+  .section-title { 
+    font-size: 9px; font-weight: bold; color: #777; letter-spacing: 1px; 
+    border-bottom: 1px solid #151515; padding-bottom: 4px; box-shadow: 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  .knob-grid-row { display: flex; justify-content: space-between; gap: 4px; margin-bottom: 4px; }
+  
+  /* Minimal Ableton-Style Knob Container */
+  .knob-container { display: flex; flex-direction: column; align-items: center; font-size: 8px; flex: 1; gap: 3px; }
+  .knob-container label { color: #999; text-align: center; font-size: 8px; }
+  
+  /* Lock the size of the knob canvases */
+  .knob-canvas { width: 32px; height: 32px; cursor: ns-resize; }
+  
+  .knob-container span { font-size: 8px; color: #00e5ff; background: #080808; padding: 2px 4px; border-radius: 2px; border: 1px solid #111; }
+
+  /* Globals */
+  .globals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+  /* Display LED Box */
+  .led-screen { 
+    background: #0a0500; color: #ffb700; font-size: 22px; font-weight: bold; 
+    text-align: center; padding: 6px; border-radius: 4px; border: 2px solid #000; 
+    letter-spacing: 3px; box-shadow: inset 0 0 10px rgba(255,183,0,0.2); text-shadow: 0 0 6px #ffb700;
+  }
+
+  /* Sequencer Step Grid */
+  .seq-chassis { 
+    background: #1a1a1a; padding: 16px; border-radius: 6px; 
+    border: 2px solid #0a0a0a; color: #ccc; box-shadow: inset 0 5px 15px rgba(0,0,0,0.7);
+  }
+  
+  .steps-grid { display: flex; gap: 4px; justify-content: space-between; margin-bottom: 2px; }
+  .step-btn { 
+    width: 44px; height: 42px; background: #252525; border: 2px solid #111; 
+    color: #666; font-size: 10px; cursor: pointer; border-radius: 4px; 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
+    position: relative; box-shadow: inset 0 2px 2px rgba(255,255,255,0.05), 0 3px 5px rgba(0,0,0,0.6);
+  }
+  .step-btn.on { background: #007788; color: #fff; border-color: #00e5ff; text-shadow: 0 0 4px #fff; box-shadow: inset 0 0 12px rgba(0,229,255,0.6); }
+  .step-btn.has-motion::after { 
+    content: ''; position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; 
+    background: #ffb700; border-radius: 50%; box-shadow: 0 0 6px #ffb700;
+  }
+
+  /* Playhead Gutter */
+  .playhead-gutter { display: flex; gap: 4px; justify-content: space-between; margin-bottom: 12px; }
+  .playhead-slot { width: 44px; height: 10px; display: flex; justify-content: center; align-items: center; }
+  .playhead-dot { width: 6px; height: 6px; background: #111; border-radius: 50%; border: 1px solid #000; box-shadow: inset 0 1px 1px rgba(0,0,0,0.8); }
+  .playhead-slot.current .playhead-dot { background: #00e5ff; border-color: #00e5ff; box-shadow: 0 0 10px #00e5ff, inset 0 0 3px #fff; }
+
+  /* Transport & Action Bar */
+  .transport-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+  button.action-btn { 
+    background: #2a2a2a; color: #bbb; border: 2px solid #111; padding: 10px 16px; 
+    font-family: monospace; font-size: 11px; font-weight: bold; cursor: pointer; 
+    border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.05);
+  }
+  button.action-btn:hover { background: #333; color: #fff; }
+  button.action-btn:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+  button.action-btn.active-play { background: #00e5ff; color: #000; border-color: #00b3cc; text-shadow: none; box-shadow: 0 0 12px #00e5ff; }
+  button.action-btn.active-rec { background: #ffb700 !important; color: #000; border-color: #cc9000; animation: pulse 1s infinite; box-shadow: 0 0 12px #ffb700; }
+  
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+  .file-info { font-size: 10px; color: #00e5ff; background: #080808; padding: 6px 10px; border: 2px solid #111; border-radius: 3px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* PIANO ROLL MODAL */
+  #pr-modal {
+    position: fixed; inset: 0; background: rgba(10, 10, 10, 0.95); z-index: 9999;
+    display: none; flex-direction: column; padding: 20px; box-sizing: border-box;
+    backdrop-filter: blur(8px);
+  }
+  #pr-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+    background: #1a1a1a; padding: 10px 20px; border: 2px solid #222; border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+  }
+  #pr-header h2 { margin: 0; color: #00e5ff; font-size: 18px; text-shadow: 0 0 6px #00e5ff; letter-spacing: 2px; }
+  #pr-canvas-container {
+    flex: 1; border: 2px solid #333; border-radius: 6px; background: #0c0c0c; 
+    position: relative; overflow: hidden; cursor: crosshair;
+    box-shadow: inset 0 0 20px rgba(0,0,0,1);
+  }
+  
+  /* Explicitly scope to the piano roll canvas only */
+  #pr-canvas { display: block; width: 100%; height: 100%; }
+
+</style>
+</head>
+<body>
+
+<div id="chassis">
+  <div class="brand-header">
+    <div>
+      <div class="brand-title">VOLCA SAMPLE // PRO MINIMAL</div>
+      <div class="brand-subtitle">ZERO-DEP ARCHITECTURE // FLAT VECTOR UI // DSP PITCH STABILIZATION</div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button class="action-btn" onclick="document.getElementById('file-loader').click()" style="padding:6px 10px; font-size:9px;">LOAD SAMPLE</button>
+      <input type="file" id="file-loader" style="display:none" onchange="loadSample(event)" accept="audio/*">
+      <span class="file-info" id="filename-display">SLOT 1: NO SAMPLE</span>
+    </div>
+  </div>
+
+  <div class="track-tabs-container">
+    <div class="track-tabs" id="track-tabs-container"></div>
+    <div class="mute-row" id="mute-row-container"></div>
+  </div>
+
+  <div class="control-surface">
+    <!-- Analogue Isolator Section -->
+    <div class="section-box">
+      <div class="section-title">ANALOGUE ISOLATOR</div>
+      <div class="knob-grid-row">
+        <div class="knob-container">
+          <label>BASS</label>
+          <canvas width="32" height="32" data-param="bass" class="knob-canvas"></canvas>
+          <span id="val-bass">1.0</span>
+        </div>
+        <div class="knob-container">
+          <label>TREBLE</label>
+          <canvas width="32" height="32" data-param="treble" class="knob-canvas"></canvas>
+          <span id="val-treble">1.0</span>
+        </div>
+      </div>
+      <div class="led-screen" id="led-display" style="margin-top:auto;">120</div>
+    </div>
+
+    <!-- Step Programmable Parameters Matrix -->
+    <div class="section-box">
+      <div class="section-title">STEP PROGRAMMABLE PARAMETERS (SLOT PAGE)</div>
+      <div class="knob-grid-row">
+        <div class="knob-container"><label>SAMPLE</label><canvas width="32" height="32" data-param="sample" class="knob-canvas"></canvas><span id="val-sample">1</span></div>
+        <div class="knob-container"><label>START PT</label><canvas width="32" height="32" data-param="start" class="knob-canvas"></canvas><span id="val-start">0</span></div>
+        <div class="knob-container"><label>LENGTH</label><canvas width="32" height="32" data-param="length" class="knob-canvas"></canvas><span id="val-length">100</span></div>
+        <div class="knob-container"><label>HI CUT</label><canvas width="32" height="32" data-param="hicut" class="knob-canvas"></canvas><span id="val-hicut">20k</span></div>
+      </div>
+      <div class="knob-grid-row">
+        <div class="knob-container"><label>SPEED</label><canvas width="32" height="32" data-param="speed" class="knob-canvas"></canvas><span id="val-speed">0</span></div>
+        <div class="knob-container"><label>EG INT</label><canvas width="32" height="32" data-param="egint" class="knob-canvas"></canvas><span id="val-egint">0</span></div>
+        <div class="knob-container"><label>ATTACK</label><canvas width="32" height="32" data-param="att" class="knob-canvas"></canvas><span id="val-att">0.01</span></div>
+        <div class="knob-container"><label>DECAY</label><canvas width="32" height="32" data-param="dec" class="knob-canvas"></canvas><span id="val-dec">0.2</span></div>
+      </div>
+      <div class="knob-grid-row">
+        <div class="knob-container"><label>RELEASE</label><canvas width="32" height="32" data-param="rel" class="knob-canvas"></canvas><span id="val-rel">0.1</span></div>
+        <div class="knob-container"><label>AMP</label><canvas width="32" height="32" data-param="amp" class="knob-canvas"></canvas><span id="val-amp">0.8</span></div>
+        <div class="knob-container">
+          <label>SGL CYC</label>
+          <input type="checkbox" id="p-singleCycle" onchange="updateParam('singleCycle', this.checked)" style="margin-top:2px; accent-color:#00e5ff; transform:scale(1.2); cursor:pointer;">
+          <span id="val-singleCycle" style="background:transparent; color:#999; margin-top:2px; border:none;">OFF</span>
+        </div>
+        <div class="knob-container" style="visibility:hidden;"></div>
+      </div>
+    </div>
+
+    <!-- Globals -->
+    <div class="section-box">
+      <div class="section-title">GLOBAL CONTROLS</div>
+      <div class="globals-grid">
+        <div class="knob-container"><label>TEMPO</label><canvas width="32" height="32" data-param="tempo" class="knob-canvas"></canvas><span id="val-tempo">120</span></div>
+        <div class="knob-container"><label>REVERB</label><canvas width="32" height="32" data-param="reverb" class="knob-canvas"></canvas><span id="val-reverb">0.2</span></div>
+        <div class="knob-container"><label>SWING</label><canvas width="32" height="32" data-param="swing" class="knob-canvas"></canvas><span id="val-swing">50%</span></div>
+        <div class="knob-container"><label>VOLUME</label><canvas width="32" height="32" data-param="volume" class="knob-canvas"></canvas><span id="val-vol">0.8</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="seq-chassis">
+    <div class="steps-grid" id="steps-container"></div>
+    <div class="playhead-gutter" id="gutter-container"></div>
+
+    <div class="transport-row" style="margin-top: 16px;">
+      <div style="display: flex; gap: 8px;">
+        <button class="action-btn" id="btn-play" onclick="togglePlay()">PLAY/STOP</button>
+        <button class="action-btn" id="btn-rec" onclick="toggleRec()">REC</button>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="action-btn" style="border-color:#ffb700; color:#ffb700;" onclick="openPianoRoll()">PIANO ROLL (GATE)</button>
+        <button class="action-btn" onclick="clearMotion()">CLR MOTION</button>
+        <button class="action-btn" onclick="clearAllSteps()">CLR STEPS</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FULL SCREEN PIANO ROLL MODAL -->
+<div id="pr-modal">
+  <div id="pr-header">
+    <div style="display:flex; align-items:center; gap: 20px;">
+      <h2 id="pr-title">PIANO ROLL // PART 1</h2>
+      <span style="color:#aaa; font-size:11px;">DRAW NOTES // DRAG RIGHT EDGE TO EXTEND & GATE</span>
+    </div>
+    <div>
+      <button class="action-btn" onclick="closePianoRoll()">CLOSE</button>
+    </div>
+  </div>
+  <div id="pr-canvas-container">
+    <canvas id="pr-canvas"></canvas>
+  </div>
+</div>
+
+<script>
+// --- AUDIO SYSTEM CORE ---
+let ctx = null, isPlaying = false, isRecording = false;
+let currentStep = 0, timerId = null;
+let activeTrackIdx = 0;
+let mainOut, revBus, revLevel;
+
+// Added currentVoicePitch to track state memory
+let tracks = Array(10).fill(0).map(() => ({
+  buffer: null,
+  sampleName: "NO SAMPLE",
+  muted: false,
+  pattern: Array(16).fill(null),
+  stepMotions: Array(16).fill(null),
+  currentVoicePitch: 0,
+  params: {
+    sample: 1, start: 0, length: 100, hicut: 20000,
+    speed: 0, egint: 0, att: 0.01, dec: 0.2, rel: 0.1, amp: 0.8, singleCycle: false
+  }
+}));
+
+let activeTrackVoices = Array(10).fill(null);
+let globalParams = { bass: 1.0, treble: 1.0, tempo: 120, reverb: 0.2, swing: 0.5, volume: 0.8 };
+
+const paramConfigs = {
+  sample: { min: 1, max: 10, step: 1 }, start: { min: 0, max: 100, step: 1 }, length: { min: 10, max: 100, step: 1 },
+  hicut: { min: 500, max: 20000, step: 100 }, speed: { min: -24, max: 24, step: 1 }, egint: { min: -1200, max: 1200, step: 10 },
+  att: { min: 0.001, max: 1, step: 0.001 }, dec: { min: 0.01, max: 2, step: 0.01 }, rel: { min: 0.01, max: 1, step: 0.01 },
+  amp: { min: 0, max: 1, step: 0.05 }, bass: { min: 0, max: 2, step: 0.1 }, treble: { min: 0, max: 2, step: 0.1 },
+  tempo: { min: 60, max: 200, step: 1 }, reverb: { min: 0, max: 1, step: 0.05 }, swing: { min: 0.5, max: 0.75, step: 0.01 }, volume: { min: 0, max: 1, step: 0.05 }
+};
+
+// --- INITIALIZATION ---
+const tabsContainer = document.getElementById('track-tabs-container');
+const muteRowContainer = document.getElementById('mute-row-container');
+const stepsContainer = document.getElementById('steps-container');
+const gutterContainer = document.getElementById('gutter-container');
+
+for(let i=0; i<10; i++) {
+  let tab = document.createElement('button');
+  tab.className = `track-tab ${i === 0 ? 'active' : ''}`;
+  tab.id = `tab-part-${i}`;
+  tab.innerText = `PART ${i+1}`;
+  tab.onclick = () => switchTrack(i);
+  tabsContainer.appendChild(tab);
+
+  let muteBtn = document.createElement('button');
+  muteBtn.className = 'mute-btn';
+  muteBtn.id = `mute-part-${i}`;
+  muteBtn.innerText = `MUTE ${i+1}`;
+  muteBtn.onclick = () => toggleMute(i);
+  muteRowContainer.appendChild(muteBtn);
+}
+
+for(let i=0; i<16; i++) {
+  let btn = document.createElement('button');
+  btn.className = 'step-btn';
+  btn.id = `step-ui-${i}`;
+  btn.innerHTML = `<span style="font-size:12px; font-weight:bold;">${i+1}</span>`;
+  btn.onclick = () => {
+    let tr = tracks[activeTrackIdx];
+    if(tr.pattern[i]) {
+      tr.pattern[i] = null;
+      btn.classList.remove('on');
+    } else {
+      tr.pattern[i] = { pitch: 0, length: 1 };
+      btn.classList.add('on');
+    }
+    if(isPRActive) drawPR();
+  };
+  stepsContainer.appendChild(btn);
+
+  let gutterSlot = document.createElement('div');
+  gutterSlot.className = 'playhead-slot';
+  gutterSlot.id = `gutter-${i}`;
+  gutterSlot.innerHTML = `<div class="playhead-dot"></div>`;
+  gutterContainer.appendChild(gutterSlot);
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') return;
+  if(e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  const muteKeys = { 'Digit1': 0, 'Digit2': 1, 'Digit3': 2, 'Digit4': 3, 'Digit5': 4, 'Digit6': 5, 'Digit7': 6, 'Digit8': 7, 'Digit9': 8, 'Digit0': 9 };
+  if(muteKeys[e.code] !== undefined) { e.preventDefault(); toggleMute(muteKeys[e.code]); }
+});
+
+function initAudio() {
+  if(!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    mainOut = ctx.createGain(); mainOut.connect(ctx.destination);
+    revBus = ctx.createConvolver();
+    let rate = ctx.sampleRate, length = rate * 2.5; 
+    let impulse = ctx.createBuffer(2, length, rate);
+    for (let i = 0; i < length; i++) { 
+      let decay = Math.exp(-i / (rate * 0.4)) * 0.6;
+      impulse.getChannelData(0)[i] = (Math.random() * 2 - 1) * decay;
+      impulse.getChannelData(1)[i] = (Math.random() * 2 - 1) * decay;
+    }
+    revBus.buffer = impulse;
+    revLevel = ctx.createGain(); revLevel.gain.value = globalParams.reverb;
+    revBus.connect(revLevel); revLevel.connect(mainOut);
+  }
+  if(ctx.state === 'suspended') ctx.resume();
+}
+
+async function loadSample(event) {
+  initAudio();
+  let file = event.target.files[0];
+  if(!file) return;
+  let arrayBuffer = await file.arrayBuffer();
+  tracks[activeTrackIdx].buffer = await ctx.decodeAudioData(arrayBuffer);
+  tracks[activeTrackIdx].sampleName = file.name;
+  document.getElementById('filename-display').innerText = `SLOT ${activeTrackIdx+1}: ${file.name.toUpperCase()}`;
+}
+
+function switchTrack(idx) {
+  activeTrackIdx = idx;
+  for(let i=0; i<10; i++) document.getElementById(`tab-part-${i}`).classList.toggle('active', i === idx);
+  let tr = tracks[activeTrackIdx];
+  document.getElementById('filename-display').innerText = `SLOT ${activeTrackIdx+1}: ${tr.sampleName.toUpperCase()}`;
+  if(isPRActive) document.getElementById('pr-title').innerText = `PIANO ROLL // PART ${idx+1}`;
+  refreshUIFromTrack(tr);
+  if(isPRActive) drawPR();
+}
+
+function toggleMute(idx) {
+  tracks[idx].muted = !tracks[idx].muted;
+  document.getElementById(`mute-part-${idx}`).classList.toggle('muted', tracks[idx].muted);
+  if(tracks[idx].muted && activeTrackVoices[idx]) { activeTrackVoices[idx].stop(); activeTrackVoices[idx] = null; }
+}
+
+function refreshUIFromTrack(tr) {
+  for(let i=0; i<16; i++) {
+    let btn = document.getElementById(`step-ui-${i}`);
+    btn.classList.toggle('on', tr.pattern[i] !== null);
+    btn.classList.toggle('has-motion', !!tr.stepMotions[i]);
+  }
+  let activeStepParams = tr.stepMotions[currentStep] ? { ...tr.params, ...tr.stepMotions[currentStep] } : tr.params;
+  for(let k in activeStepParams) {
+    if(k === 'singleCycle') {
+      document.getElementById('p-singleCycle').checked = activeStepParams.singleCycle;
+      document.getElementById('val-singleCycle').innerText = activeStepParams.singleCycle ? 'ON' : 'OFF';
+      document.getElementById('val-singleCycle').style.color = activeStepParams.singleCycle ? '#00e5ff' : '#999';
+    } else updateKnobVisual(k, activeStepParams[k]);
+  }
+}
+
+// --- FLAT MINIMAL ABLETON STYLE KNOBS ---
+function drawAbletonKnob(paramKey, value, min, max) {
+  const canvas = document.querySelector(`canvas[data-param="${paramKey}"]`);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w/2, cy = h/2;
+  const outerR = w/2 - 2; 
+  const innerR = outerR - 2;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // 1. Background Arc (Track)
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0.75 * Math.PI, 2.25 * Math.PI);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // 2. Value Arc (Filled)
+  let percent = (value - min) / (max - min);
+  let startAngle = 0.75 * Math.PI;
+  let endAngle = startAngle + (percent * 1.5 * Math.PI);
+
+  if (percent > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR, startAngle, endAngle);
+    ctx.strokeStyle = '#00e5ff'; // Cyan theme indicator
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  // 3. Flat Knob Base
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+  ctx.fillStyle = '#1e1e1e';
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // 4. Pointer Line (Tick mark)
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  let px = cx + Math.cos(endAngle) * (innerR - 1);
+  let py = cy + Math.sin(endAngle) * (innerR - 1);
+  ctx.lineTo(px, py);
+  ctx.strokeStyle = '#eeeeee';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+let activeKnob = null, startY = 0, startVal = 0;
+function initKnobDrag(event, paramKey) {
+  event.preventDefault(); activeKnob = paramKey; startY = event.clientY;
+  let isGlobal = ['bass', 'treble', 'tempo', 'reverb', 'swing', 'volume'].includes(paramKey);
+  let tr = tracks[activeTrackIdx];
+  let activeStepParams = tr.stepMotions[currentStep] ? { ...tr.params, ...tr.stepMotions[currentStep] } : tr.params;
+  startVal = isGlobal ? globalParams[paramKey] : activeStepParams[paramKey];
+  window.addEventListener('mousemove', onKnobDrag); window.addEventListener('mouseup', stopKnobDrag);
+}
+
+function onKnobDrag(event) {
+  if(!activeKnob) return;
+  let cfg = paramConfigs[activeKnob];
+  let delta = (startY - event.clientY) * 1.5;
+  let newVal = Math.max(cfg.min, Math.min(cfg.max, startVal + (delta / 150) * (cfg.max - cfg.min)));
+  newVal = cfg.step >= 1 ? Math.round(newVal / cfg.step) * cfg.step : parseFloat(newVal.toFixed(3));
+  updateParam(activeKnob, newVal);
+}
+
+function stopKnobDrag() { activeKnob = null; window.removeEventListener('mousemove', onKnobDrag); window.removeEventListener('mouseup', stopKnobDrag); }
+
+function updateParam(paramKey, val) {
+  if (paramKey === 'singleCycle') {
+    tracks[activeTrackIdx].params.singleCycle = val;
+    document.getElementById('val-singleCycle').innerText = val ? 'ON' : 'OFF';
+    document.getElementById('val-singleCycle').style.color = val ? '#00e5ff' : '#999';
+    if(isRecording && isPlaying) recordMotion('singleCycle', val);
+    return;
+  }
+  let isGlobal = ['bass', 'treble', 'tempo', 'reverb', 'swing', 'volume'].includes(paramKey);
+  if(isGlobal) {
+    globalParams[paramKey] = val;
+    if (paramKey === 'reverb' && revLevel) revLevel.gain.setTargetAtTime(val, ctx.currentTime, 0.02);
+  } else {
+    tracks[activeTrackIdx].params[paramKey] = val;
+    if(isRecording && isPlaying) recordMotion(paramKey, val);
+  }
+  updateKnobVisual(paramKey, val);
+  if(paramKey === 'tempo') document.getElementById('led-display').innerText = val;
+  
+  // LIVE MANIPULATION FIX: Inject retained voice pitch into real-time manipulation
+  if(!isGlobal && activeTrackVoices[activeTrackIdx]) {
+    let tr = tracks[activeTrackIdx];
+    let pToApply = { ...tr.params };
+    if (tr.stepMotions[currentStep]) pToApply = { ...pToApply, ...tr.stepMotions[currentStep] };
+    pToApply.speed += (tr.currentVoicePitch || 0);
+    activeTrackVoices[activeTrackIdx].updateLiveParams(pToApply, globalParams);
+  }
+  
+  if(isGlobal) activeTrackVoices.forEach(v => { if(v) v.updateLiveParams(null, globalParams); });
+}
+
+function recordMotion(key, val) {
+  let tr = tracks[activeTrackIdx];
+  if(!tr.stepMotions[currentStep]) tr.stepMotions[currentStep] = { ...tr.params };
+  tr.stepMotions[currentStep][key] = val;
+  document.getElementById(`step-ui-${currentStep}`).classList.add('has-motion');
+}
+
+function updateKnobVisual(paramKey, val) {
+  let cfg = paramConfigs[paramKey]; if(!cfg) return;
+  let displayVal = (cfg.step < 1) ? val.toFixed(2) : val;
+  if(paramKey === 'hicut') displayVal = val >= 1000 ? (val/1000)+'k' : val;
+  let lblKey = (paramKey === 'volume') ? 'vol' : paramKey;
+  let lbl = document.getElementById(`val-${lblKey}`); if(lbl) lbl.innerText = displayVal;
+  
+  drawAbletonKnob(paramKey, val, cfg.min, cfg.max);
+}
+
+window.onload = () => {
+  document.querySelectorAll('.knob-canvas').forEach(canvas => {
+    canvas.addEventListener('mousedown', (e) => initKnobDrag(e, canvas.dataset.param));
+  });
+  for(let k in globalParams) updateKnobVisual(k, globalParams[k]);
+  refreshUIFromTrack(tracks[0]);
+};
+
+// --- TRANSPORT ---
+function togglePlay() {
+  initAudio(); isPlaying = !isPlaying;
+  document.getElementById('btn-play').classList.toggle('active-play', isPlaying);
+  if(isPlaying) { currentStep = 0; scheduleLoop(); } 
+  else {
+    clearTimeout(timerId); resetGutterLEDs();
+    activeTrackVoices.forEach((voice, idx) => { if(voice) { voice.stop(); activeTrackVoices[idx] = null; } });
+  }
+}
+
+function toggleRec() {
+  initAudio(); isRecording = !isRecording;
+  document.getElementById('btn-rec').classList.toggle('active-rec', isRecording);
+  if(isRecording && !isPlaying) togglePlay();
+}
+
+function clearMotion() { tracks[activeTrackIdx].stepMotions.fill(null); refreshUIFromTrack(tracks[activeTrackIdx]); }
+function clearAllSteps() { tracks[activeTrackIdx].pattern.fill(null); refreshUIFromTrack(tracks[activeTrackIdx]); if(isPRActive) drawPR(); }
+function resetGutterLEDs() { for(let i=0; i<16; i++) document.getElementById(`gutter-${i}`).classList.remove('current'); }
+
+// --- SEQUENCER ENGINE ---
+function scheduleLoop() {
+  if(!isPlaying) return;
+  let bpm = parseFloat(globalParams.tempo) || 120;
+  let interval = (60 / bpm / 4) * 1000; 
+
+  resetGutterLEDs();
+  document.getElementById(`gutter-${currentStep}`).classList.add('current');
+  if(isPRActive) drawPR();
+
+  tracks.forEach((tr, tIdx) => {
+    let p = tr.stepMotions[currentStep] ? { ...tr.params, ...tr.stepMotions[currentStep] } : tr.params;
+    
+    if(tIdx === activeTrackIdx) {
+      for(let key in p) {
+        if(key === 'singleCycle') {
+          tr.params.singleCycle = p.singleCycle;
+          document.getElementById('p-singleCycle').checked = p.singleCycle;
+          document.getElementById('val-singleCycle').innerText = p.singleCycle ? 'ON' : 'OFF';
+          document.getElementById('val-singleCycle').style.color = p.singleCycle ? '#00e5ff' : '#999';
+        } else { tr.params[key] = p[key]; updateKnobVisual(key, p[key]); }
+      }
+    }
+
+    let note = tr.pattern[currentStep];
+    
+    // Core Engine Pitch Fix:
+    if(note && tr.buffer && !tr.muted) {
+      if(activeTrackVoices[tIdx]) { activeTrackVoices[tIdx].stop(); activeTrackVoices[tIdx] = null; }
+      
+      tr.currentVoicePitch = note.pitch; // Retain the piano roll pitch
+      
+      let prSpeedAdjust = p.speed + note.pitch;
+      let runtimeParams = { ...p, speed: prSpeedAdjust };
+      let gateDurationSec = note.length * (60 / bpm / 4);
+      
+      activeTrackVoices[tIdx] = playMonophonicVoice(tr.buffer, runtimeParams, globalParams, gateDurationSec);
+    } else if (activeTrackVoices[tIdx] && !tr.muted) {
+      // Apply the retained voice pitch into empty step live updates
+      let prSpeedAdjust = p.speed + (tr.currentVoicePitch || 0);
+      let runtimeParams = { ...p, speed: prSpeedAdjust };
+      activeTrackVoices[tIdx].updateLiveParams(runtimeParams, globalParams);
+    }
+  });
+
+  currentStep = (currentStep + 1) % 16;
+  timerId = setTimeout(scheduleLoop, interval);
+}
+
+// --- DSP PIPELINE (STABILIZED) ---
+function playMonophonicVoice(buf, p, gP, gateDurationSec) {
+  let src = ctx.createBufferSource(); src.buffer = buf;
+  let startOffset = (p.start / 100) * buf.duration;
+  let baseRate = Math.pow(2, p.speed / 12); 
+  
+  src.playbackRate.setValueAtTime(baseRate, ctx.currentTime);
+
+  let now = ctx.currentTime;
+  let bassF = ctx.createBiquadFilter(); bassF.type = 'lowshelf'; bassF.frequency.value = 300; bassF.gain.value = (gP.bass - 1) * 12;
+  let trebF = ctx.createBiquadFilter(); trebF.type = 'highshelf'; trebF.frequency.value = 3000; trebF.gain.value = (gP.treble - 1) * 12;
+  let hcF = ctx.createBiquadFilter(); hcF.type = 'lowpass'; hcF.frequency.setValueAtTime(p.hicut, now);
+  
+  let gainNode = ctx.createGain(); let slotGain = p.amp * gP.volume;
+  let isStopped = false;
+
+  if(p.singleCycle) {
+    src.loop = true; src.loopStart = startOffset; src.loopEnd = Math.min(buf.duration, startOffset + 0.008);
+    let actGate = Math.max(0.02, gateDurationSec);
+    
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(slotGain, now + Math.max(0.005, p.att));
+    gainNode.gain.setValueAtTime(slotGain, Math.max(now + Math.max(0.005, p.att), now + actGate - p.rel));
+    gainNode.gain.linearRampToValueAtTime(0.0001, now + actGate);
+    
+    src.connect(bassF); bassF.connect(trebF); trebF.connect(hcF); hcF.connect(gainNode);
+    let master = ctx.createGain(); master.gain.value = 1.0; gainNode.connect(master);
+    master.connect(mainOut); if(revBus) master.connect(revBus);
+    
+    src.start(now, startOffset);
+    src.stop(now + actGate + 0.05);
+    
+    return buildVoiceController(src, gainNode, hcF, isStopped, slotGain, p, gP);
+  } else {
+    src.loop = false;
+    let maxSlice = Math.max(0.05, (p.length / 100) * (buf.duration - startOffset));
+    let actGate = Math.min(gateDurationSec, maxSlice); 
+
+    if(p.egint !== 0) {
+      let trgRate = baseRate * Math.pow(2, p.egint / 1200);
+      src.playbackRate.setValueAtTime(trgRate, now);
+      src.playbackRate.exponentialRampToValueAtTime(baseRate, now + Math.max(0.005, p.att));
+    }
+
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(slotGain, now + Math.max(0.005, p.att));
+    gainNode.gain.setValueAtTime(slotGain, Math.max(now + Math.max(0.005, p.att), now + actGate - p.rel));
+    gainNode.gain.linearRampToValueAtTime(0.0001, now + actGate);
+
+    src.connect(bassF); bassF.connect(trebF); trebF.connect(hcF); hcF.connect(gainNode);
+    let master = ctx.createGain(); master.gain.value = 1.0; gainNode.connect(master);
+    master.connect(mainOut); if(revBus) master.connect(revBus);
+
+    src.start(now, startOffset, actGate);
+    src.stop(now + actGate + 0.05);
+
+    return buildVoiceController(src, gainNode, hcF, isStopped, slotGain, p, gP);
+  }
+}
+
+// Controller with Internal State Tracking to stop premature EG envelope disruption
+function buildVoiceController(src, gainNode, hcF, isStopped, slotGain, initParams, initGParams) {
+  let lastSpeed = initParams.speed;
+  let lastHicut = initParams.hicut;
+  let lastAmp = initParams.amp;
+  let lastVol = initGParams.volume;
+
+  return {
+    updateLiveParams: (cP, gParams) => {
+      if(isStopped) return;
+      if(cP) {
+        let t = ctx.currentTime;
+        try {
+          if (cP.speed !== lastSpeed) {
+            let rtRate = Math.pow(2, cP.speed / 12);
+            src.playbackRate.cancelScheduledValues(t); 
+            src.playbackRate.setValueAtTime(src.playbackRate.value, t);
+            src.playbackRate.setTargetAtTime(rtRate, t, 0.015);
+            lastSpeed = cP.speed;
+          }
+
+          if (cP.hicut !== lastHicut) {
+            hcF.frequency.cancelScheduledValues(t); 
+            hcF.frequency.setValueAtTime(hcF.frequency.value, t);
+            hcF.frequency.setTargetAtTime(cP.hicut, t, 0.015);
+            lastHicut = cP.hicut;
+          }
+          
+          let currentGVol = gParams ? gParams.volume : globalParams.volume;
+          if (cP.amp !== lastAmp || currentGVol !== lastVol) {
+            let tgtGain = cP.amp * currentGVol;
+            gainNode.gain.cancelScheduledValues(t); 
+            gainNode.gain.setValueAtTime(gainNode.gain.value, t);
+            gainNode.gain.setTargetAtTime(tgtGain, t, 0.015);
+            lastAmp = cP.amp;
+            lastVol = currentGVol;
+          }
+        } catch(e) {}
+      }
+    },
+    stop: () => {
+      if(isStopped) return; isStopped = true;
+      try { 
+        let t = ctx.currentTime; 
+        gainNode.gain.cancelScheduledValues(t);
+        gainNode.gain.setValueAtTime(gainNode.gain.value, t);
+        gainNode.gain.setTargetAtTime(0.0001, t, 0.015); 
+        src.stop(t + 0.05); 
+      } catch(e){}
+    }
+  };
+}
+
+
+// --- HTML5 CANVAS PIANO ROLL ---
+const prModal = document.getElementById('pr-modal');
+const prCanvas = document.getElementById('pr-canvas');
+const prCtx = prCanvas.getContext('2d');
+let isPRActive = false;
+const NUM_STEPS = 16;
+const NUM_KEYS = 49; 
+let cw = 0, ch = 0, colW = 0, rowH = 0;
+let dragState = null; 
+
+function resizeCanvas() {
+  cw = prCanvas.parentElement.clientWidth; ch = prCanvas.parentElement.clientHeight;
+  prCanvas.width = cw; prCanvas.height = ch;
+  colW = cw / NUM_STEPS; rowH = ch / NUM_KEYS;
+}
+
+window.addEventListener('resize', () => { if(isPRActive) { resizeCanvas(); drawPR(); } });
+
+function openPianoRoll() {
+  isPRActive = true; prModal.style.display = 'flex';
+  document.getElementById('pr-title').innerText = `PIANO ROLL // PART ${activeTrackIdx+1}`;
+  resizeCanvas(); drawPR();
+}
+function closePianoRoll() { isPRActive = false; prModal.style.display = 'none'; refreshUIFromTrack(tracks[activeTrackIdx]); }
+
+function drawPR() {
+  if(!isPRActive) return;
+  prCtx.clearRect(0,0,cw,ch);
+  
+  prCtx.lineWidth = 1;
+  for(let i=0; i<=NUM_KEYS; i++) {
+    prCtx.strokeStyle = i === 24 ? '#555' : '#222'; 
+    prCtx.beginPath(); prCtx.moveTo(0, i*rowH); prCtx.lineTo(cw, i*rowH); prCtx.stroke();
+  }
+  for(let i=0; i<=NUM_STEPS; i++) {
+    prCtx.strokeStyle = i%4 === 0 ? '#444' : '#222';
+    prCtx.beginPath(); prCtx.moveTo(i*colW, 0); prCtx.lineTo(i*colW, ch); prCtx.stroke();
+  }
+
+  if(isPlaying) {
+    prCtx.fillStyle = 'rgba(0, 229, 255, 0.15)';
+    let phStep = currentStep === 0 ? 15 : currentStep - 1;
+    prCtx.fillRect(phStep * colW, 0, colW, ch);
+  }
+
+  let pat = tracks[activeTrackIdx].pattern;
+  for(let s=0; s<NUM_STEPS; s++) {
+    let note = pat[s];
+    if(note) {
+      let x = s * colW, y = (24 - note.pitch) * rowH, w = note.length * colW;
+      prCtx.fillStyle = '#00e5ff'; prCtx.beginPath(); prCtx.roundRect(x+1, y+1, w-2, rowH-2, 3); prCtx.fill();
+      prCtx.fillStyle = '#ffffff'; prCtx.beginPath(); prCtx.roundRect(x + w - 8, y+2, 6, rowH-4, 2); prCtx.fill();
+    }
+  }
+}
+
+prCanvas.addEventListener('mousemove', (e) => {
+  if(!isPRActive) return;
+  const rect = prCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  
+  if(dragState && dragState.type === 'resize') {
+    let dx = x - dragState.startX;
+    let addedLen = dx / colW;
+    let newLen = Math.max(0.25, dragState.startLen + addedLen);
+    newLen = Math.round(newLen * 4) / 4;
+    tracks[activeTrackIdx].pattern[dragState.step].length = newLen;
+    drawPR();
+    return;
+  }
+
+  let pat = tracks[activeTrackIdx].pattern, cursor = 'crosshair';
+  for(let s=0; s<NUM_STEPS; s++) {
+    let note = pat[s];
+    if(note) {
+      let nx = s * colW, ny = (24 - note.pitch) * rowH, nw = note.length * colW;
+      if(x > nx + nw - 12 && x < nx + nw && y > ny && y < ny + rowH) { cursor = 'ew-resize'; break; }
+      else if(x > nx && x < nx + nw && y > ny && y < ny + rowH) { cursor = 'pointer'; break; }
+    }
+  }
+  prCanvas.style.cursor = cursor;
+});
+
+prCanvas.addEventListener('mousedown', (e) => {
+  if(!isPRActive) return;
+  const rect = prCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  
+  let clickedStep = Math.floor(x / colW), clickedPitch = 24 - Math.floor(y / rowH);
+  let pat = tracks[activeTrackIdx].pattern;
+
+  for(let s=0; s<NUM_STEPS; s++) {
+    let note = pat[s];
+    if(note) {
+      let nx = s * colW, ny = (24 - note.pitch) * rowH, nw = note.length * colW;
+      if(x > nx + nw - 12 && x < nx + nw && y > ny && y < ny + rowH) {
+        dragState = { type: 'resize', step: s, startX: x, startLen: note.length };
+        return;
+      }
+      if(x > nx && x < nx + nw && y > ny && y < ny + rowH) {
+        pat[s] = null; drawPR(); return;
+      }
+    }
+  }
+  pat[clickedStep] = { pitch: clickedPitch, length: 1 };
+  drawPR();
+});
+
+prCanvas.addEventListener('mouseup', () => { dragState = null; });
+prCanvas.addEventListener('mouseleave', () => { dragState = null; });
+
+</script>
+</body>
+</html>
